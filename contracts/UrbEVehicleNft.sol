@@ -30,7 +30,7 @@ contract UrbEVehicleNft is ERC721URIStorage {
     }
 
     // Main Functions
-    function updateArrayUri(string memory _newUri) public isDeployer(owner) {
+    function updateArrayUri(string memory _newUri) public isDeployer(msg.sender) {
         s_vehicleURIs.push(_newUri);
     }
 
@@ -43,7 +43,7 @@ contract UrbEVehicleNft is ERC721URIStorage {
     }
 
     // Getter Functions
-    function getvehicleURIs(uint256 index) public view returns (string memory) {
+    function getvehicleURI(uint256 index) public view returns (string memory) {
         return s_vehicleURIs[index];
     }
 
