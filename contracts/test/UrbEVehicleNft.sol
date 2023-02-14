@@ -5,8 +5,6 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-error UrbEVehicleNft_NotDeployer();
-
 contract UrbEVehicleNft is ERC721URIStorage, Ownable {
     // NFT Variables
     uint256 private s_tokenCounter;

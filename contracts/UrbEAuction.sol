@@ -9,17 +9,19 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 error AlreadyListed(address nftAddress, uint256 tokenId);
 error NotListed(address nftAddress, uint256 tokenId);
 error BidNotHighEnough(address nftAddress, uint256 tokenId, uint256 price);
+error AuctionAlreadyEnded(address nftAddress, uint256 tokenId);
 error NotOwner();
 error NotApproved();
-error AuctionAlreadyEnded(address nftAddress, uint256 tokenId);
 error AuctionNotYetEnded();
 error NoProceeds();
 error OnlyNotOwner();
+error TimeMustBeAboveZero();
 
 contract UrbEAuction is ReentrancyGuard, Ownable {
     struct Listing {
         uint256 price;
         uint256 endTime;
+        bool isListed;
     }
 
     address public s_highestBidder;
@@ -54,7 +56,7 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
 
     modifier notListed(address nftAddress, uint256 tokenId) {
         Listing memory listing = s_listings[nftAddress][tokenId];
-        if (listing.price > 0) {
+        if (listing.isListed) {
             revert AlreadyListed(nftAddress, tokenId);
         }
         _;
@@ -62,21 +64,8 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
 
     modifier isListed(address nftAddress, uint256 tokenId) {
         Listing memory listing = s_listings[nftAddress][tokenId];
-        if (listing.price <= 0) {
+        if (!listing.isListed) {
             revert NotListed(nftAddress, tokenId);
-        }
-        _;
-    }
-
-    modifier isOwner(
-        address nftAddress,
-        uint256 tokenId,
-        address spender
-    ) {
-        IERC721 nft = IERC721(nftAddress);
-        address owner = nft.ownerOf(tokenId);
-        if (spender != owner) {
-            revert NotOwner();
         }
         _;
     }
@@ -84,6 +73,13 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
     modifier onlyNotOwner() {
         if (msg.sender == i_deployer) {
             revert OnlyNotOwner();
+        }
+        _;
+    }
+
+    modifier timeAboveZero(uint256 time) {
+        if (time <= 0) {
+            revert TimeMustBeAboveZero();
         }
         _;
     }
@@ -106,7 +102,7 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         uint256 tokenId,
         uint256 price,
         uint256 biddingTime
-    ) external onlyOwner notListed(nftAddress, tokenId) isOwner(nftAddress, tokenId, msg.sender) {
+    ) external onlyOwner notListed(nftAddress, tokenId) timeAboveZero(biddingTime) {
         IERC721 nft = IERC721(nftAddress);
         if (nft.getApproved(tokenId) != address(this)) {
             revert NotApproved();
@@ -122,7 +118,7 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         uint256 biddingTime
     ) internal {
         uint256 endTime = block.timestamp + biddingTime;
-        s_listings[nftAddress][tokenId] = Listing(price, endTime);
+        s_listings[nftAddress][tokenId] = Listing(price, endTime, true);
     }
 
     function cancelListing(
@@ -130,10 +126,10 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         uint256 tokenId
     ) external onlyOwner isListed(nftAddress, tokenId) {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
-        delete (s_listings[nftAddress][tokenId]);
         if (listedItem.price != 0) {
             s_proceeds[s_highestBidder] += listedItem.price;
         }
+        delete (s_listings[nftAddress][tokenId]);
         emit ItemCanceled(nftAddress, tokenId);
     }
 
@@ -146,7 +142,7 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
             revert AuctionAlreadyEnded(nftAddress, tokenId);
         }
 
-        if (msg.value < listedItem.price) {
+        if (msg.value <= listedItem.price) {
             revert BidNotHighEnough(nftAddress, tokenId, listedItem.price);
         }
 
@@ -156,7 +152,7 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
 
         s_highestBidder = msg.sender;
 
-        listedItem.price = msg.value;
+        s_listings[nftAddress][tokenId].price = msg.value;
 
         emit HighestBidIncreased(msg.sender, msg.value);
     }
@@ -186,5 +182,24 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         s_proceeds[msg.sender] = 0;
         (bool success, ) = payable(msg.sender).call{value: proceeds}("");
         require(success, "Transfer Failed");
+    }
+
+    //////////////////////
+    // Getter Functions //
+    //////////////////////
+
+    function getListing(
+        address nftAddress,
+        uint256 tokenId
+    ) external view returns (Listing memory) {
+        return s_listings[nftAddress][tokenId];
+    }
+
+    function getProceeds(address seller) external view returns (uint256) {
+        return s_proceeds[seller];
+    }
+
+    function getHighestBidder() external view returns (address) {
+        return s_highestBidder;
     }
 }
