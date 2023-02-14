@@ -3,12 +3,12 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 error UrbEVehicleNft_NotDeployer();
 
-contract UrbEVehicleNft is ERC721URIStorage {
+contract UrbEVehicleNft is ERC721URIStorage, Ownable {
     // NFT Variables
-    address public owner;
     uint256 private s_tokenCounter;
     string[] internal s_vehicleURIs;
 
@@ -16,21 +16,13 @@ contract UrbEVehicleNft is ERC721URIStorage {
 
     mapping(string => uint) public s_jsonValues;
 
-    modifier isDeployer(address deployer) {
-        if (deployer != owner) {
-            revert UrbEVehicleNft_NotDeployer();
-        }
-        _;
-    }
-
     constructor(string memory vehiclesURIs) ERC721("UrbE Vehicles NFT", "URBE") {
         s_vehicleURIs.push(vehiclesURIs);
         s_tokenCounter = 0;
-        owner = msg.sender;
     }
 
     // Main Functions
-    function updateArrayUri(string memory _newUri) public isDeployer(msg.sender) {
+    function updateArrayUri(string memory _newUri) public onlyOwner {
         s_vehicleURIs.push(_newUri);
     }
 
