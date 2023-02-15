@@ -15,10 +15,14 @@ const networkConfig = {
 const DECIMALS = "18"
 const INITIAL_PRICE = "200000000000000000000"
 const developmentChains = ["hardhat", "localhost"]
+const frontEndContractsFile = "../../urbe-django/frontend/constants/networkMapping.json"
+const frontEndAbiLocation = "../../urbe-django/frontend/constants/"
 
 module.exports = {
     networkConfig,
     developmentChains,
     DECIMALS,
     INITIAL_PRICE,
+    frontEndContractsFile,
+    frontEndAbiLocation,
 }
