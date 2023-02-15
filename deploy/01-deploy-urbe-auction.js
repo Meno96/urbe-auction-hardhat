@@ -7,8 +7,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deployer } = await getNamedAccounts()
 
     log("----------------------------------------------------")
-    arguments = ["ipfs://Qme6jKCNDyXSZB7TW9yUsChKndc7n84sdUrQWs8pvTLZLz"]
-    const urbEVehicleNft = await deploy("UrbEVehicleNft", {
+    arguments = []
+    const urbEAuction = await deploy("UrbEAuction", {
         from: deployer,
         args: arguments,
         log: true,
@@ -18,7 +18,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     // Verify the deployment
     if (!developmentChains.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
-        await verify(urbEVehicleNft.address, arguments)
+        await verify(urbEAuction.address, arguments)
     }
 }
 
