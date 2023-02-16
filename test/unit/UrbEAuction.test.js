@@ -95,10 +95,8 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   urbEAuction = urbEAuctionContract.connect(user)
                   await urbEAuction.placeBid(urbEVehicleNft.address, TOKEN_ID, { value: PRICE })
                   urbEAuction = urbEAuctionContract.connect(deployer)
-                  highestBidder = await urbEAuction.getHighestBidder(
-                      urbEVehicleNft.address,
-                      TOKEN_ID
-                  )
+                  listedItem = await urbEAuction.getListing(urbEVehicleNft.address, TOKEN_ID)
+                  highestBidder = listedItem.highestBidder
                   await urbEAuction.cancelListing(urbEVehicleNft.address, TOKEN_ID)
                   proceedsHighestBidder = await urbEAuction.getProceeds(highestBidder)
                   assert.equal(proceedsHighestBidder.toString(), PRICE.toString())
@@ -154,10 +152,8 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   expect(
                       await urbEAuction.placeBid(urbEVehicleNft.address, TOKEN_ID, { value: PRICE })
                   ).to.emit("HighestBidIncreased")
-                  highestBidder = await urbEAuction.getHighestBidder(
-                      urbEVehicleNft.address,
-                      TOKEN_ID
-                  )
+                  listedItem = await urbEAuction.getListing(urbEVehicleNft.address, TOKEN_ID)
+                  highestBidder = listedItem.highestBidder
                   assert.equal(highestBidder.toString(), user.address.toString())
                   listing = await urbEAuction.getListing(urbEVehicleNft.address, TOKEN_ID)
                   assert.equal(listing.price.toString(), PRICE)
