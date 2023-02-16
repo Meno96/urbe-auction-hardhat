@@ -22,16 +22,15 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         uint256 price;
         uint256 endTime;
         bool isListed;
+        address highestBidder;
     }
 
-    address public s_highestBidder;
     address private immutable i_deployer;
 
     mapping(address => mapping(uint256 => Listing)) private s_listings;
     mapping(address => uint256) private s_proceeds;
 
     event ItemListed(
-        address indexed seller,
         address indexed nftAddress,
         uint256 indexed tokenId,
         uint256 price,
@@ -40,14 +39,13 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
 
     event ItemCanceled(address indexed nftAddress, uint256 indexed tokenId);
 
-    event ItemBought(
-        address indexed buyer,
+    event HighestBidIncreased(
+        address indexed bidder,
         address indexed nftAddress,
         uint256 indexed tokenId,
         uint256 price
     );
 
-    event HighestBidIncreased(address indexed bidder, uint256 indexed price);
     event AuctionEnded(
         address indexed winner,
         address indexed nftAddress,
@@ -118,8 +116,8 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         uint256 biddingTime
     ) internal {
         uint256 endTime = block.timestamp + biddingTime;
-        s_listings[nftAddress][tokenId] = Listing(price, endTime, true);
-        emit ItemListed(msg.sender, nftAddress, tokenId, price, endTime);
+        s_listings[nftAddress][tokenId] = Listing(price, endTime, true, i_deployer);
+        emit ItemListed(nftAddress, tokenId, price, endTime);
     }
 
     function cancelListing(
@@ -128,7 +126,7 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
     ) external onlyOwner isListed(nftAddress, tokenId) {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
         if (listedItem.price != 0) {
-            s_proceeds[s_highestBidder] += listedItem.price;
+            s_proceeds[listedItem.highestBidder] += listedItem.price;
         }
         delete (s_listings[nftAddress][tokenId]);
         emit ItemCanceled(nftAddress, tokenId);
@@ -148,14 +146,14 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         }
 
         if (listedItem.price != 0) {
-            s_proceeds[s_highestBidder] += listedItem.price;
+            s_proceeds[listedItem.highestBidder] += listedItem.price;
         }
 
-        s_highestBidder = msg.sender;
+        s_listings[nftAddress][tokenId].highestBidder = msg.sender;
 
         s_listings[nftAddress][tokenId].price = msg.value;
 
-        emit HighestBidIncreased(msg.sender, msg.value);
+        emit HighestBidIncreased(msg.sender, nftAddress, tokenId, msg.value);
     }
 
     function auctionEnd(
@@ -170,9 +168,9 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
 
         s_proceeds[i_deployer] += listedItem.price;
         delete (s_listings[nftAddress][tokenId]);
-        IERC721(nftAddress).safeTransferFrom(i_deployer, s_highestBidder, tokenId);
+        IERC721(nftAddress).safeTransferFrom(i_deployer, listedItem.highestBidder, tokenId);
 
-        emit AuctionEnded(s_highestBidder, nftAddress, tokenId, listedItem.price);
+        emit AuctionEnded(listedItem.highestBidder, nftAddress, tokenId, listedItem.price);
     }
 
     function withdrawProceeds() external {
@@ -200,7 +198,11 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         return s_proceeds[seller];
     }
 
-    function getHighestBidder() external view returns (address) {
-        return s_highestBidder;
+    function getHighestBidder(address nftAddress, uint256 tokenId) external view returns (address) {
+        return s_listings[nftAddress][tokenId].highestBidder;
+    }
+
+    function getDeployer() public view returns (address) {
+        return i_deployer;
     }
 }

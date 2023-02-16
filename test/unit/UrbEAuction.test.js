@@ -95,8 +95,11 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   urbEAuction = urbEAuctionContract.connect(user)
                   await urbEAuction.placeBid(urbEVehicleNft.address, TOKEN_ID, { value: PRICE })
                   urbEAuction = urbEAuctionContract.connect(deployer)
+                  highestBidder = await urbEAuction.getHighestBidder(
+                      urbEVehicleNft.address,
+                      TOKEN_ID
+                  )
                   await urbEAuction.cancelListing(urbEVehicleNft.address, TOKEN_ID)
-                  highestBidder = await urbEAuction.getHighestBidder()
                   proceedsHighestBidder = await urbEAuction.getProceeds(highestBidder)
                   assert.equal(proceedsHighestBidder.toString(), PRICE.toString())
               })
@@ -135,7 +138,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   urbEAuction.placeBid(urbEVehicleNft.address, TOKEN_ID, {
                       value: ethers.utils.parseEther("0.3"),
                   })
-                  highestBidder = await urbEAuction.getHighestBidder()
                   urbEAuction = urbEAuctionContract.connect(user2)
                   urbEAuction.placeBid(urbEVehicleNft.address, TOKEN_ID, {
                       value: ethers.utils.parseEther("0.5"),
@@ -152,7 +154,10 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   expect(
                       await urbEAuction.placeBid(urbEVehicleNft.address, TOKEN_ID, { value: PRICE })
                   ).to.emit("HighestBidIncreased")
-                  highestBidder = await urbEAuction.getHighestBidder()
+                  highestBidder = await urbEAuction.getHighestBidder(
+                      urbEVehicleNft.address,
+                      TOKEN_ID
+                  )
                   assert.equal(highestBidder.toString(), user.address.toString())
                   listing = await urbEAuction.getListing(urbEVehicleNft.address, TOKEN_ID)
                   assert.equal(listing.price.toString(), PRICE)
