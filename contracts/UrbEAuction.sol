@@ -35,7 +35,8 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         address indexed nftAddress,
         uint256 indexed tokenId,
         uint256 price,
-        uint256 endTime
+        uint256 endTime,
+        uint256 startTime
     );
 
     event ItemCanceled(address indexed nftAddress, uint256 indexed tokenId);
@@ -116,15 +117,10 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         uint256 tokenId,
         uint256 biddingTime
     ) internal {
+        uint256 startTime = block.timestamp;
         uint256 endTime = block.timestamp + biddingTime;
-        s_listings[nftAddress][tokenId] = Listing(
-            price,
-            block.timestamp,
-            endTime,
-            true,
-            i_deployer
-        );
-        emit ItemListed(nftAddress, tokenId, price, endTime);
+        s_listings[nftAddress][tokenId] = Listing(price, startTime, endTime, true, i_deployer);
+        emit ItemListed(nftAddress, tokenId, price, endTime, startTime);
     }
 
     function cancelListing(
