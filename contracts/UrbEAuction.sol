@@ -20,6 +20,7 @@ error TimeMustBeAboveZero();
 contract UrbEAuction is ReentrancyGuard, Ownable {
     struct Listing {
         uint256 price;
+        uint256 startTime;
         uint256 endTime;
         bool isListed;
         address highestBidder;
@@ -116,7 +117,13 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         uint256 biddingTime
     ) internal {
         uint256 endTime = block.timestamp + biddingTime;
-        s_listings[nftAddress][tokenId] = Listing(price, endTime, true, i_deployer);
+        s_listings[nftAddress][tokenId] = Listing(
+            price,
+            block.timestamp,
+            endTime,
+            true,
+            i_deployer
+        );
         emit ItemListed(nftAddress, tokenId, price, endTime);
     }
 
@@ -196,10 +203,6 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
 
     function getProceeds(address seller) external view returns (uint256) {
         return s_proceeds[seller];
-    }
-
-    function getHighestBidder(address nftAddress, uint256 tokenId) external view returns (address) {
-        return s_listings[nftAddress][tokenId].highestBidder;
     }
 
     function getDeployer() public view returns (address) {
