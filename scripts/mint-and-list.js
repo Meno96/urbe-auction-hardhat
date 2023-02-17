@@ -2,7 +2,7 @@ const { ethers, network } = require("hardhat")
 const { moveBlocks } = require("../utils/move-blocks")
 
 const PRICE = ethers.utils.parseEther("0.1")
-const TIME = 60
+const TIME = 120
 
 async function mintAndList() {
     const urbEAuction = await ethers.getContract("UrbEAuction")
