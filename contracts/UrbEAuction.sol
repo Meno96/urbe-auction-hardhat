@@ -126,7 +126,7 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
     function cancelListing(
         address nftAddress,
         uint256 tokenId
-    ) external onlyOwner isListed(nftAddress, tokenId) {
+    ) public onlyOwner isListed(nftAddress, tokenId) {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
         if (listedItem.price != 0) {
             s_proceeds[listedItem.highestBidder] += listedItem.price;
@@ -169,9 +169,13 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
             revert AuctionNotYetEnded();
         }
 
-        s_proceeds[i_deployer] += listedItem.price;
-        delete (s_listings[nftAddress][tokenId]);
-        IERC721(nftAddress).safeTransferFrom(i_deployer, listedItem.highestBidder, tokenId);
+        if (listedItem.price != 0) {
+            s_proceeds[i_deployer] += listedItem.price;
+            delete (s_listings[nftAddress][tokenId]);
+            IERC721(nftAddress).safeTransferFrom(i_deployer, listedItem.highestBidder, tokenId);
+        } else {
+            cancelListing(nftAddress, tokenId);
+        }
 
         emit AuctionEnded(listedItem.highestBidder, nftAddress, tokenId, listedItem.price);
     }

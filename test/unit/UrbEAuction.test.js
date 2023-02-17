@@ -197,6 +197,14 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   const newOwner = await urbEVehicleNft.ownerOf(TOKEN_ID)
                   assert(newOwner.toString() == user.address)
               })
+              it("Cancel Item if there's no bid", async () => {
+                  await urbEAuction.listItem(urbEVehicleNft.address, TOKEN_ID, 0, 1)
+                  await ethers.provider.send("evm_increaseTime", [2])
+                  await urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID)
+                  await expect(
+                      urbEAuction.cancelListing(urbEVehicleNft.address, TOKEN_ID)
+                  ).to.be.revertedWith("NotListed")
+              })
           })
           describe("withdrawProceeds", function () {
               it("Doesn't allow 0 proceed withdrawls", async () => {
@@ -223,6 +231,11 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       deployerBalanceAfter.add(gasCost).toString() ==
                           deployerProceedsBefore.add(deployerBalanceBefore).toString()
                   )
+              })
+          })
+          describe("getDeployer", function () {
+              it("getDeployer", async () => {
+                  assert.equal(await urbEAuction.getDeployer(), deployer.address)
               })
           })
       })
