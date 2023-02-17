@@ -162,7 +162,7 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
     function auctionEnd(
         address nftAddress,
         uint256 tokenId
-    ) external payable isListed(nftAddress, tokenId) nonReentrant {
+    ) external isListed(nftAddress, tokenId) nonReentrant {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
 
         if (block.timestamp < listedItem.endTime) {
