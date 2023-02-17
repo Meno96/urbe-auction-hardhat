@@ -169,13 +169,19 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
             revert AuctionNotYetEnded();
         }
 
-        if (listedItem.price != 0) {
-            s_proceeds[i_deployer] += listedItem.price;
-            delete (s_listings[nftAddress][tokenId]);
-            IERC721(nftAddress).safeTransferFrom(i_deployer, listedItem.highestBidder, tokenId);
-        } else if (s_listings[nftAddress][tokenId].highestBidder == i_deployer) {
-            delete (s_listings[nftAddress][tokenId]);
+        // Controllo se l'oggetto in vendita ha ricevuto offerte
+        if (listedItem.price == 0) {
+            // Nessuna offerta ricevuta, eliminazione del listing
+            delete s_listings[nftAddress][tokenId];
+
+            // Visualizzazione del messaggio di conferma
+            emit AuctionEnded(i_deployer, nftAddress, tokenId, 0);
+            return;
         }
+
+        s_proceeds[i_deployer] += listedItem.price;
+        delete (s_listings[nftAddress][tokenId]);
+        IERC721(nftAddress).safeTransferFrom(i_deployer, listedItem.highestBidder, tokenId);
 
         emit AuctionEnded(listedItem.highestBidder, nftAddress, tokenId, listedItem.price);
     }
