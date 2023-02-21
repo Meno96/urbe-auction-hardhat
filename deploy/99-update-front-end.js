@@ -29,13 +29,28 @@ async function updateAbi() {
 async function updateContractAddresses() {
     const chainId = network.config.chainId.toString()
     const urbEAuction = await ethers.getContract("UrbEAuction")
+    const urbEVehicleNft = await ethers.getContract("UrbEVehicleNft")
     const contractAddresses = JSON.parse(fs.readFileSync(frontEndContractsFile, "utf8"))
     if (chainId in contractAddresses) {
-        if (!contractAddresses[chainId]["UrbEAuction"].includes(urbEAuction.address)) {
+        if (!contractAddresses[chainId]["UrbEAuction"]) {
+            contractAddresses[chainId]["UrbEAuction"] = []
+            contractAddresses[chainId]["UrbEAuction"].push(urbEAuction.address)
+        } else if (!contractAddresses[chainId]["UrbEAuction"].includes(urbEAuction.address)) {
             contractAddresses[chainId]["UrbEAuction"].push(urbEAuction.address)
         }
     } else {
         contractAddresses[chainId] = { UrbEAuction: [urbEAuction.address] }
+    }
+    fs.writeFileSync(frontEndContractsFile, JSON.stringify(contractAddresses))
+    if (chainId in contractAddresses) {
+        if (!contractAddresses[chainId]["UrbEVehicleNft"]) {
+            contractAddresses[chainId]["UrbEVehicleNft"] = []
+            contractAddresses[chainId]["UrbEVehicleNft"].push(urbEVehicleNft.address)
+        } else if (!contractAddresses[chainId]["UrbEVehicleNft"].includes(urbEVehicleNft.address)) {
+            contractAddresses[chainId]["UrbEVehicleNft"].push(urbEVehicleNft.address)
+        }
+    } else {
+        contractAddresses[chainId] = { UrbEVehicleNft: [urbEVehicleNft.address] }
     }
     fs.writeFileSync(frontEndContractsFile, JSON.stringify(contractAddresses))
 }

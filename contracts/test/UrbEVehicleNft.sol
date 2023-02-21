@@ -33,8 +33,8 @@ contract UrbEVehicleNft is ERC721URIStorage, Ownable {
     }
 
     // Getter Functions
-    function getvehicleURI(uint256 index) public view returns (string memory) {
-        return s_vehicleURIs[index];
+    function getVehicleURI() public view returns (string[] memory) {
+        return s_vehicleURIs;
     }
 
     function getTokenCounter() public view returns (uint256) {
