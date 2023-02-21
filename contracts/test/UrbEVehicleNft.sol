@@ -7,34 +7,44 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract UrbEVehicleNft is ERC721URIStorage, Ownable {
     // NFT Variables
+    struct NFT {
+        string uri;
+        string name;
+    }
+
     uint256 private s_tokenCounter;
-    string[] internal s_vehicleURIs;
+    uint256 private s_nftCount;
+
+    mapping(uint256 => NFT) public s_nfts;
 
     event NftMinted(uint256 indexed tokenId);
 
-    mapping(string => uint) public s_jsonValues;
-
-    constructor(string memory vehiclesURIs) ERC721("UrbE Vehicles NFT", "URBE") {
-        s_vehicleURIs.push(vehiclesURIs);
+    constructor() ERC721("UrbE Vehicles NFT", "URBE") {
         s_tokenCounter = 0;
+        s_nftCount = 0;
     }
 
     // Main Functions
-    function updateArrayUri(string memory _newUri) public onlyOwner {
-        s_vehicleURIs.push(_newUri);
+    function updateMappingNft(string memory _uri, string memory _name) public onlyOwner {
+        s_nfts[s_nftCount] = NFT(_uri, _name);
+        s_nftCount = s_nftCount + 1;
     }
 
     function mintNft(uint256 index) public {
         uint256 newItemId = s_tokenCounter;
         s_tokenCounter = s_tokenCounter + 1;
         _safeMint(msg.sender, newItemId);
-        _setTokenURI(newItemId, s_vehicleURIs[index]);
+        _setTokenURI(newItemId, s_nfts[index].uri);
         emit NftMinted(newItemId);
     }
 
     // Getter Functions
-    function getVehicleURI() public view returns (string[] memory) {
-        return s_vehicleURIs;
+    function getNftInfos() public view returns (NFT[] memory) {
+        NFT[] memory result = new NFT[](s_nftCount);
+        for (uint256 i = 0; i < s_nftCount; i++) {
+            result[i] = s_nfts[i];
+        }
+        return result;
     }
 
     function getTokenCounter() public view returns (uint256) {

@@ -21,26 +21,23 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   const name = await urbEVehicle.name()
                   const symbol = await urbEVehicle.symbol()
                   const tokenCounter = await urbEVehicle.getTokenCounter()
-                  const uri = await urbEVehicle.getvehicleURI(0)
 
                   assert.equal(name, "UrbE Vehicles NFT")
                   assert.equal(symbol, "URBE")
                   assert.equal(tokenCounter.toString(), "0")
-                  assert.equal(
-                      uri.toString(),
-                      "ipfs://Qme6jKCNDyXSZB7TW9yUsChKndc7n84sdUrQWs8pvTLZLz"
-                  )
               })
           })
 
-          describe("updateArrayUri", () => {
+          describe("updateMappingNft", () => {
               it("Revert if is not deployer", async () => {
                   urbEVehicle = urbEVehicleContract.connect(user)
-                  await expect(urbEVehicle.updateArrayUri("example")).to.be.reverted
+                  await expect(urbEVehicle.updateMappingNft("Uri", "Name")).to.be.reverted
               })
               it("Update array", async () => {
-                  await urbEVehicle.updateArrayUri("example")
-                  assert.equal(await urbEVehicle.getvehicleURI(1), "example")
+                  await urbEVehicle.updateMappingNft("Uri", "Name")
+                  const nfts = await urbEVehicle.getNftInfos()
+                  assert.equal(nfts[0].uri.toString(), "Uri")
+                  assert.equal(nfts[0].name.toString(), "Name")
               })
           })
 
