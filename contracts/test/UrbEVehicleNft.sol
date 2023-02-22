@@ -5,7 +5,7 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract UrbEVehicleNft is ERC721URIStorage, Ownable {
+contract UrbEVehicleNft is ERC721URIStorage {
     // NFT Variables
     struct NFT {
         string uri;
@@ -25,7 +25,7 @@ contract UrbEVehicleNft is ERC721URIStorage, Ownable {
     }
 
     // Main Functions
-    function updateMappingNft(string memory _uri, string memory _name) public onlyOwner {
+    function updateMappingNft(string memory _uri, string memory _name) public {
         s_nfts[s_nftCount] = NFT(_uri, _name);
         s_nftCount = s_nftCount + 1;
     }

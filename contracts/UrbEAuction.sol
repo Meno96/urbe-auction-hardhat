@@ -17,7 +17,7 @@ error NoProceeds();
 error OnlyNotOwner();
 error TimeMustBeAboveZero();
 
-contract UrbEAuction is ReentrancyGuard, Ownable {
+contract UrbEAuction is ReentrancyGuard {
     struct Listing {
         uint256 price;
         uint256 startTime;
@@ -103,7 +103,7 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
         uint256 tokenId,
         uint256 price,
         uint256 biddingTime
-    ) external onlyOwner notListed(nftAddress, tokenId) timeAboveZero(biddingTime) {
+    ) external notListed(nftAddress, tokenId) timeAboveZero(biddingTime) {
         IERC721 nft = IERC721(nftAddress);
         if (nft.getApproved(tokenId) != address(this)) {
             revert NotApproved();
@@ -126,7 +126,7 @@ contract UrbEAuction is ReentrancyGuard, Ownable {
     function cancelListing(
         address nftAddress,
         uint256 tokenId
-    ) external onlyOwner isListed(nftAddress, tokenId) {
+    ) external isListed(nftAddress, tokenId) {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
         if (listedItem.price != 0) {
             s_proceeds[listedItem.highestBidder] += listedItem.price;
