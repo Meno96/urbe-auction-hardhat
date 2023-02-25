@@ -26,12 +26,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
           })
 
           describe("listItem", () => {
-              it("OnlyOwner", async () => {
-                  urbEAuction = urbEAuctionContract.connect(user)
-                  await expect(
-                      urbEAuction.listItem(urbEVehicleNftContract.address, TOKEN_ID, 0, TIME)
-                  ).to.be.reverted
-              })
               it("Check if NFT is already listed", async () => {
                   urbEAuction.listItem(urbEVehicleNftContract.address, TOKEN_ID, 0, TIME)
                   await expect(

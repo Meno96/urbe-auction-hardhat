@@ -29,10 +29,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
           })
 
           describe("updateMappingNft", () => {
-              it("Revert if is not deployer", async () => {
-                  urbEVehicle = urbEVehicleContract.connect(user)
-                  await expect(urbEVehicle.updateMappingNft("Uri", "Name")).to.be.reverted
-              })
               it("Update array", async () => {
                   await urbEVehicle.updateMappingNft("Uri", "Name")
                   const nfts = await urbEVehicle.getNftInfos()

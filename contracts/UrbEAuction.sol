@@ -24,6 +24,7 @@ contract UrbEAuction is ReentrancyGuard {
         uint256 endTime;
         bool isListed;
         address highestBidder;
+        address seller;
     }
 
     address private immutable i_deployer;
@@ -32,6 +33,7 @@ contract UrbEAuction is ReentrancyGuard {
     mapping(address => uint256) private s_proceeds;
 
     event ItemListed(
+        address indexed seller,
         address indexed nftAddress,
         uint256 indexed tokenId,
         uint256 price,
@@ -39,7 +41,7 @@ contract UrbEAuction is ReentrancyGuard {
         uint256 startTime
     );
 
-    event ItemCanceled(address indexed nftAddress, uint256 indexed tokenId);
+    event ItemCanceled(address indexed seller, address indexed nftAddress, uint256 indexed tokenId);
 
     event HighestBidIncreased(
         address indexed bidder,
@@ -119,8 +121,15 @@ contract UrbEAuction is ReentrancyGuard {
     ) internal {
         uint256 startTime = block.timestamp;
         uint256 endTime = block.timestamp + biddingTime;
-        s_listings[nftAddress][tokenId] = Listing(price, startTime, endTime, true, i_deployer);
-        emit ItemListed(nftAddress, tokenId, price, endTime, startTime);
+        s_listings[nftAddress][tokenId] = Listing(
+            price,
+            startTime,
+            endTime,
+            true,
+            i_deployer,
+            msg.sender
+        );
+        emit ItemListed(msg.sender, nftAddress, tokenId, price, endTime, startTime);
     }
 
     function cancelListing(
@@ -132,7 +141,7 @@ contract UrbEAuction is ReentrancyGuard {
             s_proceeds[listedItem.highestBidder] += listedItem.price;
         }
         delete (s_listings[nftAddress][tokenId]);
-        emit ItemCanceled(nftAddress, tokenId);
+        emit ItemCanceled(msg.sender, nftAddress, tokenId);
     }
 
     function placeBid(
