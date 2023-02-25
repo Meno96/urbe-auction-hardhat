@@ -126,7 +126,7 @@ contract UrbEAuction is ReentrancyGuard {
             startTime,
             endTime,
             true,
-            i_deployer,
+            msg.sender,
             msg.sender
         );
         emit ItemListed(msg.sender, nftAddress, tokenId, price, endTime, startTime);
