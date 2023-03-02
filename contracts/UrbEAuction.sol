@@ -54,7 +54,9 @@ contract UrbEAuction is ReentrancyGuard {
         address indexed winner,
         address indexed nftAddress,
         uint256 indexed tokenId,
-        uint256 price
+        address seller,
+        uint256 price,
+        bytes auctionJson
     );
 
     modifier notListed(address nftAddress, uint256 tokenId) {
@@ -170,7 +172,8 @@ contract UrbEAuction is ReentrancyGuard {
 
     function auctionEnd(
         address nftAddress,
-        uint256 tokenId
+        uint256 tokenId,
+        bytes memory auctionJson
     ) external isListed(nftAddress, tokenId) nonReentrant {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
 
@@ -178,15 +181,26 @@ contract UrbEAuction is ReentrancyGuard {
             revert AuctionNotYetEnded();
         }
 
-        if (s_listings[nftAddress][tokenId].highestBidder == i_deployer) {
+        if (s_listings[nftAddress][tokenId].highestBidder == listedItem.seller) {
             delete (s_listings[nftAddress][tokenId]);
         } else {
-            s_proceeds[i_deployer] += listedItem.price;
+            s_proceeds[listedItem.seller] += listedItem.price;
             delete (s_listings[nftAddress][tokenId]);
-            IERC721(nftAddress).safeTransferFrom(i_deployer, listedItem.highestBidder, tokenId);
+            IERC721(nftAddress).safeTransferFrom(
+                listedItem.seller,
+                listedItem.highestBidder,
+                tokenId
+            );
         }
 
-        emit AuctionEnded(listedItem.highestBidder, nftAddress, tokenId, listedItem.price);
+        emit AuctionEnded(
+            listedItem.highestBidder,
+            nftAddress,
+            tokenId,
+            listedItem.seller,
+            listedItem.price,
+            auctionJson
+        );
     }
 
     function withdrawProceeds() external {

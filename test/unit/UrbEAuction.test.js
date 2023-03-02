@@ -11,6 +11,21 @@ const { developmentChains } = require("../../helper-hardhat-config")
           const PRICE = ethers.utils.parseEther("0.1")
           const TIME = 3600
 
+          const auctionData = {
+              title: "Test auction",
+          }
+
+          const auctionJson = JSON.stringify(auctionData)
+
+          const auctionBytes = new TextEncoder().encode(auctionJson)
+
+          const auctionHexString = []
+          auctionBytes.forEach((byte) => {
+              auctionHexString.push(("0" + byte.toString(16)).slice(-2))
+          })
+
+          const auctionString = "0x" + auctionHexString.join("")
+
           beforeEach(async () => {
               accounts = await ethers.getSigners()
               deployer = accounts[0]
@@ -157,14 +172,14 @@ const { developmentChains } = require("../../helper-hardhat-config")
           describe("auctionEnd", () => {
               it("Check if NFT is not listed", async () => {
                   await expect(
-                      urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID)
+                      urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID, auctionString)
                   ).to.be.revertedWith("NotListed")
               })
 
               it("Revert if Auction Not Yet Ended", async () => {
                   await urbEAuction.listItem(urbEVehicleNft.address, TOKEN_ID, 0, TIME)
                   await expect(
-                      urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID)
+                      urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID, auctionString)
                   ).to.be.revertedWith("AuctionNotYetEnded")
               })
               it("Updates internal proceeds record and delete listing", async () => {
@@ -172,7 +187,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   urbEAuction = urbEAuctionContract.connect(user)
                   await urbEAuction.placeBid(urbEVehicleNft.address, TOKEN_ID, { value: PRICE })
                   await ethers.provider.send("evm_increaseTime", [2])
-                  await urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID)
+                  await urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID, auctionString)
                   proceedsDeployer = await urbEAuction.getProceeds(deployer.address)
                   assert.equal(proceedsDeployer.toString(), PRICE.toString())
                   urbEAuction = urbEAuctionContract.connect(deployer)
@@ -185,16 +200,16 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   urbEAuction = urbEAuctionContract.connect(user)
                   await urbEAuction.placeBid(urbEVehicleNft.address, TOKEN_ID, { value: PRICE })
                   await ethers.provider.send("evm_increaseTime", [2])
-                  expect(await urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID)).to.emit(
-                      "AuctionEnded"
-                  )
+                  expect(
+                      await urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID, auctionString)
+                  ).to.emit("AuctionEnded")
                   const newOwner = await urbEVehicleNft.ownerOf(TOKEN_ID)
                   assert(newOwner.toString() == user.address)
               })
               it("Cancel Item if there's no bid", async () => {
                   await urbEAuction.listItem(urbEVehicleNft.address, TOKEN_ID, 0, 1)
                   await ethers.provider.send("evm_increaseTime", [2])
-                  await urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID)
+                  await urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID, auctionString)
                   await expect(
                       urbEAuction.cancelListing(urbEVehicleNft.address, TOKEN_ID)
                   ).to.be.revertedWith("NotListed")
@@ -211,7 +226,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   await urbEAuction.placeBid(urbEVehicleNft.address, TOKEN_ID, { value: PRICE })
                   urbEAuction = urbEAuctionContract.connect(deployer)
                   await ethers.provider.send("evm_increaseTime", [2])
-                  await urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID)
+                  await urbEAuction.auctionEnd(urbEVehicleNft.address, TOKEN_ID, auctionString)
 
                   const deployerProceedsBefore = await urbEAuction.getProceeds(deployer.address)
                   const deployerBalanceBefore = await deployer.getBalance()
