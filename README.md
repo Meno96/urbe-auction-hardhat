@@ -11,7 +11,8 @@
 
 <br/>
 
-This project is a charity auction for UrbE, a micromobility company. The repository in question is the part of the project that uses Hardhat to create and manage the smart contracts for the auction.
+This project is a web application for a charity auction organized by UrbE, a micromobility company. 
+The repository in question is the part of the project that uses Hardhat to create and manage the smart contracts for the auction.
 
 The project uses Solidity, a programming language designed specifically for smart contracts on Ethereum, to write the auction and the NFT contract.
 
